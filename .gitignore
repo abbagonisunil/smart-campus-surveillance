@@ -1,0 +1,20 @@
+# Virtual environment
+venv/
+
+# Node modules
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+
+# Mac files
+.DS_Store
+
+# YOLO model weights
+*.pt
