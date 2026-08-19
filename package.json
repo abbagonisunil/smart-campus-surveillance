@@ -1,0 +1,23 @@
+{
+  "name": "smart-campus-surveillance",
+  "version": "1.0.0",
+  "description": "Smart Campus AI Surveillance System with YOLOv8, Node.js Backend, and React Dashboard",
+  "scripts": {
+    "start": "node backend/server.js",
+    "backend": "cd backend && node server.js",
+    "frontend": "cd frontend && npm start",
+    "ai": "./venv/bin/python ai-module/decoder.py",
+    "ai:demo": "./venv/bin/python ai-module/decoder.py --source demo",
+    "ai:headless": "./venv/bin/python ai-module/decoder.py --headless"
+  },
+  "keywords": [
+    "surveillance",
+    "yolov8",
+    "react",
+    "express",
+    "socketio",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC"
+}

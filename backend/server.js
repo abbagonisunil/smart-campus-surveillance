@@ -16,7 +16,20 @@ app.use(express.json());
 
 // MongoDB connection
 mongoose.connect('mongodb://localhost:27017/smartcampus')
-    .then(() => console.log('✅ MongoDB connected'))
+    .then(async () => {
+        console.log('✅ MongoDB connected');
+        // Auto-seed default admin user if not existing
+        try {
+            const adminExists = await User.findOne({ username: 'admin' });
+            if (!adminExists) {
+                const hashedPassword = await bcrypt.hash('admin123', 10);
+                await User.create({ username: 'admin', password: hashedPassword, role: 'admin' });
+                console.log('👤 Default admin user created (admin / admin123)');
+            }
+        } catch (seedErr) {
+            console.error('Error seeding admin user:', seedErr);
+        }
+    })
     .catch(err => console.log('❌ MongoDB error:', err));
 
 // Schemas
@@ -48,7 +61,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // Routes
-app.get('/', (req, res) => res.json({ message: 'Smart Campus API running' }));
+app.get('/', (req, res) => res.json({ message: 'Smart Campus API running', status: 'healthy' }));
 
 // Register (run once to create admin)
 app.post('/auth/register', async (req, res) => {
@@ -56,7 +69,7 @@ app.post('/auth/register', async (req, res) => {
     const existing = await User.findOne({ username });
     if (existing) return res.status(400).json({ message: 'User already exists' });
     const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashed, role });
+    const user = new User({ username, password: hashed, role: role || 'guard' });
     await user.save();
     res.json({ message: 'User created successfully' });
 });
@@ -93,9 +106,14 @@ io.on('connection', (socket) => {
     console.log('📡 Client connected:', socket.id);
     socket.on('detection_alert', async (data) => {
         console.log('⚠️  Alert received:', data);
-        const alert = new Alert(data);
-        await alert.save();
-        io.emit('new_alert', data);
+        const alert = new Alert({
+            type: data.type || 'intrusion',
+            message: data.message || 'Intrusion detected',
+            camera: data.camera || 'CAM-01',
+            timestamp: data.timestamp ? new Date(data.timestamp) : new Date()
+        });
+        const savedAlert = await alert.save();
+        io.emit('new_alert', savedAlert);
     });
     socket.on('disconnect', () => console.log('Client disconnected:', socket.id));
 });
